@@ -9,15 +9,17 @@ fi
 # Reinstalls the persistent SASI VPS SSH identity at the start of every
 # session, so the server always sees the same key without it having to be
 # regenerated (and re-registered with the admin) each time.
-if [ -z "${SASI_VPS_SSH_KEY:-}" ]; then
-  echo "SASI_VPS_SSH_KEY secret not set; skipping VPS SSH key setup." >&2
+# The environment variable holds the private key base64-encoded on a single
+# line, since cloud environment variables only support one-line values.
+if [ -z "${SASI_VPS_SSH_KEY_B64:-}" ]; then
+  echo "SASI_VPS_SSH_KEY_B64 environment variable not set; skipping VPS SSH key setup." >&2
   exit 0
 fi
 
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 
-printf '%s\n' "$SASI_VPS_SSH_KEY" > ~/.ssh/id_ed25519
+printf '%s' "$SASI_VPS_SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
 chmod 600 ~/.ssh/id_ed25519
 
 ssh-keygen -y -f ~/.ssh/id_ed25519 > ~/.ssh/id_ed25519.pub
